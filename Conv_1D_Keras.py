@@ -11,7 +11,7 @@ from keras.preprocessing import sequence
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Lambda
 from keras.layers import Convolution1D,MaxPooling1D, Flatten
-
+from keras.utils import multi_gpu_model
 from keras import backend as K
 from sklearn.cross_validation import train_test_split
 import pandas as pd
@@ -41,11 +41,9 @@ y_test = np.array(C)
 X_train = np.reshape(trainX, (trainX.shape[0],trainX.shape[1],1))
 X_test = np.reshape(testT, (testT.shape[0],testT.shape[1],1))
 
-from keras.utils import multi_gpu_model
 
-# Replicates `model` on 5 GPUs.
-# This assumes that your machine has 5 available GPUs.
-cnn = multi_gpu_model(model, gpus=5)
+
+
 
 
 # In[2]:
@@ -59,19 +57,21 @@ cnn.add(Dropout(0.5))
 cnn.add(Dense(2, activation="sigmoid"))
 print(cnn.summary())
 # define optimizer and objective, compile cnn
-
+# Replicates `model` on 5 GPUs.
+# This assumes that your machine has 5 available GPUs.
+parallel_model = multi_gpu_model(cnn, gpus=5)
 
 # In[3]:
 
-cnn.compile(loss="binary_crossentropy", optimizer="adam",metrics=['accuracy'])
+parallel_model.compile(loss="binary_crossentropy", optimizer="adam",metrics=['accuracy'])
 # train
-cnn.fit(X_train, y_train, epochs=500,validation_data=(X_test, y_test))
+parallel_model.fit(X_train, y_train, epochs=500,validation_data=(X_test, y_test))
 # serialize model to JSON
-model_json = model.to_json()
+model_json = parallel_model.to_json()
 with open("cnn1D_MawiLAB.json", "w") as json_file:
     json_file.write(model_json)
 # serialize weights to HDF5
-model.save_weights("cnn1D_MawiLAB.h5")
+parallel_model.save_weights("cnn1D_MawiLAB.h5")
 print("Saved model to disk")
 
 
