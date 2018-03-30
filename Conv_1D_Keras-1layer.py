@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[3]:
 
 from __future__ import print_function
 import numpy as np
@@ -71,28 +71,46 @@ X_test3 = np.reshape(X_test3, (X_test3.shape[0],X_test3.shape[1],1))
 X_test4 = np.reshape(X_test4, (X_test4.shape[0],X_test4.shape[1],1))
 
 
-# In[2]:
+# In[5]:
 
-cnn1d_1 = Sequential([Conv1D(64, 3, padding="same",input_shape=(16, 1)),
+import numpy as np
+import pickle
+import pandas as pd 
+X_test_ = pd.read_pickle("./dataset/kdd_test__2labels.pkl").as_matrix()
+Y_test_ = pd.read_pickle("./dataset/kdd_test__2labels_y.pkl").as_matrix()
+
+X_train_ = pd.read_pickle("./dataset/kdd_train__2labels.pkl").as_matrix()
+Y_train_ = pd.read_pickle("./dataset/kdd_train__2labels_y.pkl").as_matrix()
+
+print(X_test_.shape, Y_test_.shape)
+print(X_train_.shape, Y_train_.shape)
+
+X_train_ = np.reshape(X_train_, (X_train_.shape[0],X_train_.shape[1],1))
+X_test_ = np.reshape(X_test_, (X_test_.shape[0],X_test_.shape[1],1))
+
+
+# In[ ]:
+
+cnn1d_1 = Sequential([Conv1D(64, 3, padding="same",input_shape=(124, 1)),
     Activation('relu'),
     MaxPooling1D(pool_size=2),
     Flatten(),
     Dense(128),
     Activation('relu'),
     Dropout(0.5),
-    Dense(2),
+    Dense(1),
     Activation('sigmoid'),
 ])
 print(cnn1d_1.summary())
 
 
-# In[4]:
+# In[ ]:
 
-cnn1d_1 = multi_gpu_model(cnn1d_1, gpus=8)
+#cnn1d_1 = multi_gpu_model(cnn1d_1, gpus=8)
 cnn1d_1.compile(loss="binary_crossentropy", optimizer="adam",metrics=['accuracy'])
 # train
 start_time = time.time()
-cnn1d_1.fit(X_train, Y_train, batch_size=64, validation_data=(X_test2, Y_test2) ,epochs=10)
+cnn1d_1.fit(X_train_, Y_train_, batch_size=64, validation_data=(X_test_, Y_test_) ,epochs=10)
 end_time = time.time() 
 print("Total time taken to train the Training model is", (end_time - start_time))
 # serialize model to JSON
