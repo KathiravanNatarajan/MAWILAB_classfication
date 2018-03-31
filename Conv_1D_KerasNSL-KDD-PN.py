@@ -15,7 +15,9 @@ from keras.layers import Conv1D,MaxPooling1D, Flatten
 from keras.utils import multi_gpu_model
 from keras import backend as K
 from sklearn.cross_validation import train_test_split
-import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('agg')
+import pylab as plt
 import pandas as pd
 from keras.utils.np_utils import to_categorical
 from sklearn.preprocessing import Normalizer
